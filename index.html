@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>LoveOS v2.0</title>
+<style>
+:root{
+  --bg:#070A0F;
+  --panel:#0B1220;
+  --text:#D7E1FF;
+  --muted:#8EA2D6;
+  --accent:#7CFFB2;
+  --border:rgba(215,225,255,.12);
+  --shadow:0 20px 50px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background: radial-gradient(1200px 800px at 20% 10%, rgba(124,255,178,.12), transparent 55%),
+              radial-gradient(900px 700px at 90% 30%, rgba(255,124,170,.10), transparent 55%),
+              radial-gradient(800px 600px at 60% 90%, rgba(255,210,124,.10), transparent 50%),
+              var(--bg);
+  color:var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:24px;
+}
+.frame{
+  width:min(920px, 100%);
+  border:1px solid var(--border);
+  border-radius:18px;
+  background: linear-gradient(180deg, rgba(11,18,32,.92), rgba(11,18,32,.82));
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+  background: rgba(255,255,255,.02);
+  gap:12px;
+}
+.dots{display:flex; gap:8px}
+.dot{width:10px;height:10px;border-radius:999px}
+.dot.red{background:#FF5F57}
+.dot.yellow{background:#FEBC2E}
+.dot.green{background:#28C840}
+.title{
+  font-size:13px;
+  color:var(--muted);
+  letter-spacing:.3px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  flex:1;
+}
+.pills{display:flex; gap:10px; align-items:center}
+.pill{
+  font-size:12px;
+  color:var(--muted);
+  padding:6px 10px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background: rgba(255,255,255,.03);
+}
+.terminal{
+  padding:18px 18px 14px;
+  height:min(74vh, 580px);
+  overflow:auto;
+  scroll-behavior:smooth;
+}
+.line{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:4px 0;
+}
+.prompt{
+  color:var(--accent);
+  white-space:nowrap;
+  min-width:18px;
+}
+.text{
+  color:var(--text);
+  line-height:1.55;
+  white-space:pre-wrap;
+}
+.muted{color:var(--muted)}
+.accent{color:var(--accent)}
+.hr{
+  margin:14px 0;
+  height:1px;
+  background: linear-gradient(90deg, transparent, rgba(215,225,255,.18), transparent);
+}
+.choices{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  padding:10px 0 2px;
+}
+button{
+  cursor:pointer;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background: rgba(255,255,255,.04);
+  color:var(--text);
+  padding:10px 12px;
+  font: inherit;
+  transition: transform .08s ease, background .2s ease, border-color .2s ease;
+}
+button:hover{background: rgba(255,255,255,.07); border-color: rgba(215,225,255,.22)}
+button:active{transform: translateY(1px)}
+button.romance{
+  background: rgba(255,124,170,.12);
+  border-color: rgba(255,124,170,.38);
+}
+button.romance:hover{background: rgba(255,124,170,.18)}
+button.primary{
+  background: rgba(124,255,178,.12);
+  border-color: rgba(124,255,178,.35);
+}
+button.primary:hover{background: rgba(124,255,178,.18)}
+.blink{
+  display:inline-block;
+  width:9px;
+  height:16px;
+  background: var(--accent);
+  margin-left:6px;
+  border-radius:2px;
+  animation: blink 1s steps(2,start) infinite;
+  vertical-align:-2px;
+  opacity:.9;
+}
+@keyframes blink { to { visibility: hidden; } }
+.footer{
+  border-top:1px solid var(--border);
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  color:var(--muted);
+  font-size:12px;
+  background: rgba(255,255,255,.015);
+}
+::selection { background: rgba(124,255,178,.22); }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="topbar">
+    <div class="dots" aria-hidden="true">
+      <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+    </div>
+    <div class="title" id="barTitle">LoveOS Terminal — v2.0 Upgrade</div>
+    <div class="pills">
+      <span class="pill" id="runtimePill">Runtime: 365d</span>
+      <span class="pill" id="stabilityPill">Stability: Strong</span>
+    </div>
+  </div>
+
+  <div class="terminal" id="terminal" role="log" aria-live="polite"></div>
+
+  <div class="footer">
+    <div>Tip: click anywhere to speed up typing.</div>
+    <div><span class="accent">connected</span> • LoveOS</div>
+  </div>
+</div>
+
+<script>
+/** ========= CONFIG ========= **/
+const CONFIG = {
+  herName: "HerName",
+  yourName: "Reuben",
+  anniversaryDays: 365,
+  stability: "Strong",
+
+  // Memory Cache (your list) – keep/edit here
+  memoryLines: [
+    "First Toto's after dating",
+    "Our one month date when i got the best cake ever (spongebob one as well!)",
+    "Our first finish together OOF",
+    "Thicker than a snickers shortsss",
+    "when we celebrated the RCB IPL win too much",
+    "SO MANY AUTO HANDSIES",
+    "my graduation night OUR FIRST ILOVEU",
+    // (You can paste the rest of your lines here locally)
+    "SEPTEMBER 22ND DATE RECREATION WITH THE ZAWGGGGGG",
+    "OCT-NOV ON DA LOW CAUSE OF PAPERS BUT GOOD DATE NIGHTS",
+    "December 14 sis bday room chori but amazing night"
+  ],
+
+  // Device profile lines (paste yours locally if needed)
+  deviceTraits: [
+    "Soft-hearted, calm-core",
+    "Very loving",
+    "Smart enough to see through my nonsense",
+    // add the rest locally as you want
+    "Best music taste"
+  ],
+
+  // Buttons (keep as you want locally)
+  finalButtons: [
+    { key: "Always", label: "Always" },
+    { key: "Obviously", label: "Obviously" }
+  ]
+};
+
+/** ========= TOPBAR ========= **/
+document.getElementById("barTitle").textContent = "LoveOS Terminal — v2.0 Upgrade";
+document.getElementById("runtimePill").textContent = `Runtime: ${CONFIG.anniversaryDays}d`;
+document.getElementById("stabilityPill").textContent = `Stability: ${CONFIG.stability}`;
+
+/** ========= TERMINAL ENGINE (TYPEWRITER) ========= **/
+const term = document.getElementById("terminal");
+let SPEED = 14;           // base typing speed (ms per char)
+let FAST_MULT = 0.35;     // click = faster multiplier
+let speedBoost = 1;
+
+document.addEventListener("click", () => { speedBoost = FAST_MULT; });
+
+function scrollBottom(){ term.scrollTop = term.scrollHeight; }
+function addHR(){
+  const hr = document.createElement("div");
+  hr.className = "hr";
+  term.appendChild(hr);
+  scrollBottom();
+}
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+async function typeInto(el, text){
+  // Type char by char
+  for (let i = 0; i < text.length; i++){
+    el.textContent += text[i];
+    scrollBottom();
+    await sleep(Math.max(2, SPEED * speedBoost));
+  }
+}
+
+async function printLine({prompt=">", text="", cls=""}){
+  const row = document.createElement("div");
+  row.className = "line";
+
+  const p = document.createElement("span");
+  p.className = "prompt";
+  p.textContent = prompt ? prompt : " ";
+
+  const t = document.createElement("span");
+  t.className = "text " + (cls || "");
+
+  row.appendChild(p);
+  row.appendChild(t);
+  term.appendChild(row);
+  scrollBottom();
+
+  await typeInto(t, text);
+}
+
+function addChoices(buttons){
+  const wrap = document.createElement("div");
+  wrap.className = "choices";
+  buttons.forEach(b=>{
+    const btn = document.createElement("button");
+    btn.textContent = b.label;
+    btn.className = b.className || "romance";
+    btn.addEventListener("click", b.onClick);
+    wrap.appendChild(btn);
+  });
+  term.appendChild(wrap);
+  scrollBottom();
+}
+
+function addBlink(){
+  const row = document.createElement("div");
+  row.className = "line";
+  row.innerHTML = `<span class="prompt muted"> </span><span class="text muted">Awaiting your input</span><span class="blink"></span>`;
+  term.appendChild(row);
+  scrollBottom();
+}
+
+/** ========= FLOW ========= **/
+let installed = false;
+
+async function boot(){
+  await printLine({prompt: ">", text: `system.boot --user "${CONFIG.herName}"`});
+  await sleep(250);
+  await printLine({prompt: "", text: "Initializing modules...", cls:"muted"});
+  await printLine({prompt: "", text: "Loading memory cache...", cls:"muted"});
+  await printLine({prompt: "", text: "Checking emotional bandwidth... OK", cls:"muted"});
+  await sleep(200);
+
+  addHR();
+
+  await printLine({prompt: ">", text: "relationship.status --summary"});
+  await sleep(160);
+  await printLine({prompt: "", text: `Relationship Runtime: ${CONFIG.anniversaryDays} days`});
+  await printLine({prompt: "", text: `Stability Index: ${CONFIG.stability}`});
+  await printLine({prompt: "", text: "Compatibility: unfairly good"});
+  await printLine({prompt: "", text: "Mood: in love (still)"});
+
+  addHR();
+
+  await printLine({prompt: ">", text: "updates.check"});
+  await sleep(260);
+  await printLine({prompt: "", text: "⚠ Update Available: LoveOS v2.0"});
+  await printLine({prompt: "", text: "This update includes: romance, playfulness, and a few important bug fixes."});
+  await printLine({prompt: "", text: "Recommended: Install immediately (for best cuddles per second).", cls:"muted"});
+
+  addChoices([
+    { label: "Install Now", className:"primary", onClick: install },
+    { label: "View Details", onClick: details }
+  ]);
+  addBlink();
+}
+
+async function details(){
+  await printLine({prompt: ">", text: "updates.details"});
+  await printLine({prompt: "", text: `Target device: ${CONFIG.herName}'s heart`});
+  await printLine({prompt: "", text: "Install size: tiny (but somehow feels huge)"});
+  await printLine({prompt: "", text: "Downtime: 0 minutes"});
+  await printLine({prompt: "", text: "Note: This update is irreversible because I’m not going back.", cls:"muted"});
+  addChoices([{ label: "Install Now", className:"primary", onClick: install }]);
+}
+
+async function install(){
+  if (installed) return;
+  installed = true;
+
+  addHR();
+  await printLine({prompt: ">", text: "updates.install --version 2.0"});
+  await sleep(180);
+
+  // Your updated progress sequence (text-only)
+  const steps = [
+    "Downloading: buggu.pack",
+    "Downloading: patience.dll",
+    "Downloading: laughter.codec",
+    "Applying patch: listen_mode++",
+    "Applying patch: reassurance_autosave",
+    "Optimizing: text_response_time",
+    "Finalizing: anniversary_mode"
+  ];
+  for (const s of steps){
+    await printLine({prompt:"", text: s, cls:"muted"});
+  }
+
+  await printLine({prompt:"", text:"✔ Installation complete.", cls:"accent"});
+
+  addHR();
+
+  // Patch notes (your updated text)
+  await printLine({prompt: ">", text: "release.notes --LoveOS v2.0"});
+  await sleep(160);
+
+  await printLine({prompt:"", text:"New Features Added"});
+  await printLine({prompt:"", text:"• inside jokes +200%"});
+  await printLine({prompt:"", text:"• so much new music"});
+  await printLine({prompt:"", text:"• auto-hug and kissy deployment"});
+  await printLine({prompt:"", text:"• improved “I miss you” responsiveness"});
+  await printLine({prompt:"", text:"• Anniversary Mode activated"});
+
+  await sleep(220);
+  await printLine({prompt:"", text:"Performance Improvements"});
+  await printLine({prompt:"", text:"• reduced response time"});
+  await printLine({prompt:"", text:"• faster apology protocol"});
+  await printLine({prompt:"", text:"• better listening integration"});
+  await printLine({prompt:"", text:"• enhanced communication algorithm"});
+
+  await sleep(220);
+  await printLine({prompt:"", text:"Bug Fixes"});
+  // Put your exact bug fix lines locally if needed
+  await printLine({prompt:"", text:"• random silence crash resolved"});
+  await printLine({prompt:"", text:"• mood swing buffering improved"});
+
+  addHR();
+
+  // Device profile
+  await printLine({prompt: ">", text: "device.profile --traits"});
+  for (const t of CONFIG.deviceTraits){
+    await printLine({prompt:"", text:`• ${t}`});
+  }
+  await sleep(140);
+  await printLine({prompt:"", text:`“${CONFIG.herName} remains my favorite system.”`});
+
+  addHR();
+
+  // Memory Cache
+  await printLine({prompt: ">", text: "memory.cache --restore full_archive"});
+  await printLine({prompt:"", text:"Restoring relationship logs...", cls:"muted"});
+  await sleep(250);
+
+  for (const m of CONFIG.memoryLines){
+    await printLine({prompt:"", text:`> ${m}`});
+  }
+
+  await sleep(220);
+  await printLine({prompt:"", text:"Coming to the most important month of the year: February.", cls:"accent"});
+
+  addHR();
+
+  // Final prompt (your version wording)
+  await printLine({prompt:"", text:"LoveOS v2.0 is now running smoothly."});
+  await printLine({prompt:"", text:"Status: Still choosing you. Daily."});
+  await printLine({prompt:"", text:"No trial period. No auto-expiration. No hidden clauses."});
+  await sleep(220);
+  await printLine({prompt:"", text:"Would you like to continue this journey into Version 2.0?"});
+
+  addChoices(CONFIG.finalButtons.map(b => ({
+    label: b.label,
+    className: "romance",
+    onClick: () => finalScreen()
+  })));
+  addBlink();
+}
+
+async function finalScreen(){
+  addHR();
+
+  // After click — with DRAMATIC PAUSES (as requested)
+  await printLine({prompt:"", text:"Confirmation received."});
+  await sleep(900);
+
+  await printLine({prompt:"", text:`Commit message: "One year down. I’m still all in."`});
+  await sleep(1600);
+
+  await printLine({prompt:"", text:`"Maybe one day I'll fly next to you"`});
+  await sleep(2000);
+
+  await printLine({prompt:"", text:"— Reuben"});
+  await sleep(800);
+
+  await printLine({prompt:"", text:"You can close the terminal now, and give feedback to your closest mogger"});
+}
+
+boot();
+</script>
+</body>
+</html>

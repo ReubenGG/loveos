@@ -49,6 +49,10 @@ input{
   font:inherit;
   flex:1;
 }
+input::placeholder{
+  color:var(--muted);
+  opacity:1;
+}
 
 .caret{
   display:inline-block;
@@ -93,7 +97,7 @@ async function typeInto(span, text){
   span.appendChild(node);
   span.appendChild(caret);
 
-  const MIN_DURATION = 3000;
+  const MIN_DURATION = 3000;  // 3s minimum typing per line
   const charDelay = 35;
 
   const start = Date.now();
@@ -201,6 +205,55 @@ async function install(){
   await printLine({prompt:"", text:"Finalizing: anniversary_mode"});
   await printLine({prompt:"", text:"✔ Installation complete."});
 
+  // ===== INSERTED SECTION (ORDER YOU CONFIRMED) =====
+
+  await printLine({prompt:"", text:"Hi Sheryl, Welcome back"});
+
+  await printLine({prompt:">", text:"device.profile --traits"});
+  await printLine({prompt:"", text:"• Soft-hearted, calm-core"});
+  await printLine({prompt:"", text:"• Very loving"});
+  await printLine({prompt:"", text:"• Smart enough to see through my nonsense"});
+  await printLine({prompt:"", text:"• Best music taste"});
+  await printLine({prompt:"", text:"“Sheryl remains my favorite system.”"});
+
+  // ===== THE REST (Release Notes) =====
+
+  await printLine({prompt:">", text:"release.notes --LoveOS v2.0"});
+
+  await printLine({prompt:"", text:"New Features Added"});
+  await printLine({prompt:"", text:"• inside jokes +200%"});
+  await printLine({prompt:"", text:"• so much new music"});
+  await printLine({prompt:"", text:"• auto-hug and kissy deployment"});
+  await printLine({prompt:"", text:"• improved “I miss you” responsiveness"});
+  await printLine({prompt:"", text:"• Anniversary Mode activated"});
+
+  await printLine({prompt:"", text:"Performance Improvements"});
+  await printLine({prompt:"", text:"• reduced response time"});
+  await printLine({prompt:"", text:"• faster apology protocol"});
+  await printLine({prompt:"", text:"• better listening integration"});
+  await printLine({prompt:"", text:"• enhanced communication algorithm"});
+
+  await printLine({prompt:"", text:"Bug Fixes"});
+  await printLine({prompt:"", text:"• random silence crash resolved"});
+  await printLine({prompt:"", text:"• mood swing buffering improved"});
+
+  // ===== MEMORY LINES (AFTER THE REST) =====
+
+  await printLine({prompt:">", text:"memory.cache --restore full_archive"});
+  await printLine({prompt:"", text:"Restoring relationship logs..."});
+  await printLine({prompt:"", text:"> First Toto's after dating"});
+  await printLine({prompt:"", text:"> Our one month date when i got the best cake ever (spongebob one as well!)"});
+  await printLine({prompt:"", text:"> Our first finish together OOF"});
+  await printLine({prompt:"", text:"> Thicker than a snickers shortsss"});
+  await printLine({prompt:"", text:"> when we celebrated the RCB IPL win too much"});
+  await printLine({prompt:"", text:"> SO MANY AUTO HANDSIES"});
+  await printLine({prompt:"", text:"> my graduation night OUR FIRST ILOVEU"});
+  await printLine({prompt:"", text:"> SEPTEMBER 22ND DATE RECREATION WITH THE ZAWGGGGGG"});
+  await printLine({prompt:"", text:"> OCT-NOV ON DA LOW CAUSE OF PAPERS BUT GOOD DATE NIGHTS"});
+  await printLine({prompt:"", text:"> December 14 sis bday room chori but amazing night"});
+
+  // ===== CONTINUE ORIGINAL FLOW =====
+
   await printLine({prompt:"", text:"LoveOS v2.0 is now running smoothly."});
   await printLine({prompt:"", text:"Status: Still choosing you. Daily."});
   await printLine({prompt:"", text:"No trial period. No auto-expiration. No hidden clauses."});
@@ -228,9 +281,10 @@ async function final(){
   // Extra dramatic pause before red line
   await sleep(4000);
 
-  await printLine({prompt:"", text:"now take your clothes off, oil up and let's go to town.", cls:"red"});
+  // (Red, suggestive, non-explicit)
+  await printLine({prompt:"", text:"Red Alert: now take your clothes off, oil up and lets have sex.", cls:"red"});
 
-  await printLine({prompt:"", text:"You can close the terminal now, and give feedback to your closest mogger"});
+  await printLine({prompt:"", text:"You can close the terminal now, and give the sloppiest head to your closest mogger"});
 }
 
 async function start(){

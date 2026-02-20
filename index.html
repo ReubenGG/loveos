@@ -75,20 +75,23 @@
 
     .terminal{
       padding:18px 18px 14px;
-      height:min(72vh, 580px);
+      height:min(72vh, 600px);
       overflow:auto;
       scroll-behavior:smooth;
     }
     .line{display:flex; gap:10px; align-items:flex-start; padding:4px 0}
     .prompt{color:var(--accent); white-space:nowrap; min-width:16px}
-    .text{color:var(--text); line-height:1.5; white-space:pre-wrap}
+    .text{color:var(--text); line-height:1.55; white-space:pre-wrap}
+
     .muted{color:var(--muted)}
     .accent{color:var(--accent)}
+
     .hr{
       margin:14px 0;
       height:1px;
       background: linear-gradient(90deg, transparent, rgba(215,225,255,.18), transparent);
     }
+
     .choices{
       display:flex;
       flex-wrap:wrap;
@@ -117,6 +120,7 @@
       border-color: rgba(255,124,170,.38);
     }
     button.romance:hover{background: rgba(255,124,170,.18)}
+
     .footer{
       border-top:1px solid var(--border);
       padding:12px 16px;
@@ -127,7 +131,25 @@
       font-size:12px;
       background: rgba(255,255,255,.015);
     }
-    .blink{
+
+    /* Input line */
+    input{
+      background:transparent;
+      border:none;
+      outline:none;
+      color:var(--text);
+      font:inherit;
+      flex:1;
+      padding:0;
+      margin:0;
+    }
+    input::placeholder{
+      color: var(--muted);
+      opacity: 1;
+    }
+
+    /* Visible typing cursor */
+    .caret{
       display:inline-block;
       width:9px;
       height:16px;
@@ -140,15 +162,17 @@
     }
     @keyframes blink { to { visibility: hidden; } }
 
-    input{
-      background:transparent;
-      border:none;
-      outline:none;
-      color:var(--text);
-      font:inherit;
-      flex:1;
-      padding:0;
-      margin:0;
+    /* Awaiting cursor */
+    .blink{
+      display:inline-block;
+      width:9px;
+      height:16px;
+      background: var(--accent);
+      margin-left:6px;
+      border-radius:2px;
+      animation: blink 1s steps(2,start) infinite;
+      vertical-align:-2px;
+      opacity:.9;
     }
 
     ::selection { background: rgba(124,255,178,.22); }
@@ -180,23 +204,19 @@
 <script>
 /** ========= CONFIG ========= **/
 const CONFIG = {
-  herName: "HerName",   // optional (only used in one line)
+  herName: "HerName",
   yourName: "Reuben",
   anniversaryDays: 365,
   stability: "Strong",
 
-  // Device profile lines (safe version included)
-  // If you want your full custom list, paste it here locally.
+  // Safe default; you can expand locally.
   deviceTraits: [
     "Soft-hearted, calm-core",
     "Very loving",
     "Smart enough to see through my nonsense",
     "Best music taste"
-    // add more here if you want
   ],
 
-  // Memory cache lines
-  // You can paste your full list here locally.
   memoryLines: [
     "First Toto's after dating",
     "Our one month date when i got the best cake ever (spongebob one as well!)",
@@ -205,18 +225,14 @@ const CONFIG = {
     "when we celebrated the RCB IPL win too much",
     "SO MANY AUTO HANDSIES",
     "my graduation night OUR FIRST ILOVEU",
-    // Placeholder for any explicit lines you want to add locally:
-    // "[ADD YOUR PRIVATE LINE HERE]",
     "SEPTEMBER 22ND DATE RECREATION WITH THE ZAWGGGGGG",
     "OCT-NOV ON DA LOW CAUSE OF PAPERS BUT GOOD DATE NIGHTS",
     "December 14 sis bday room chori but amazing night"
   ],
 
-  // Final button labels (safe placeholders included)
   finalButtons: [
     { key: "Always", label: "Always" },
     { key: "Obviously", label: "Obviously" }
-    // If you want your custom button text, paste it locally.
   ]
 };
 
@@ -225,10 +241,12 @@ document.getElementById("barTitle").textContent = `LoveOS Terminal — v2.0 Upgr
 document.getElementById("runtimePill").textContent = `Runtime: ${CONFIG.anniversaryDays}d`;
 document.getElementById("stabilityPill").textContent = `Stability: ${CONFIG.stability}`;
 
-/** ========= TERMINAL ENGINE (TYPEWRITER) ========= **/
+/** ========= TERMINAL ENGINE ========= **/
 const term = document.getElementById("terminal");
-let SPEED = 14;           // ms per character
-let FAST_MULT = 0.35;     // click to speed up
+
+// Slower cinematic typing
+let SPEED = 55;         // ms per character (slow-burn)
+let FAST_MULT = 0.6;    // click speeds up but not too much
 let speedBoost = 1;
 
 document.addEventListener("click", () => { speedBoost = FAST_MULT; });
@@ -242,12 +260,25 @@ function addHR(){
 }
 function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
 
-async function typeInto(el, text){
-  for (let i = 0; i < text.length; i++){
-    el.textContent += text[i];
+async function typeInto(textSpan, fullText){
+  // Create a dedicated text node + caret so we can type "before" the caret.
+  const textNode = document.createTextNode("");
+  const caret = document.createElement("span");
+  caret.className = "caret";
+
+  // Clear and mount
+  textSpan.textContent = "";
+  textSpan.appendChild(textNode);
+  textSpan.appendChild(caret);
+
+  for(let i=0; i<fullText.length; i++){
+    textNode.data += fullText[i];
     scrollBottom();
-    await sleep(Math.max(2, SPEED * speedBoost));
+    await sleep(Math.max(6, SPEED * speedBoost));
   }
+
+  // Remove caret after typing finishes
+  caret.remove();
 }
 
 async function printLine({prompt=">", text="", cls=""}){
@@ -319,13 +350,13 @@ const verifySteps = [
 
 async function startVerification(){
   await printLine({prompt:"", text:"LoveOS v2.0"});
-  await sleep(500);
+  await sleep(900);
   await printLine({prompt:"", text:"Access Restricted."});
-  await sleep(700);
+  await sleep(1000);
   await printLine({prompt:"", text:"This system contains one year of stored memories."});
-  await sleep(700);
+  await sleep(1000);
   await printLine({prompt:"", text:"Unauthorized users will not be granted access.", cls:"muted"});
-  await sleep(1100);
+  await sleep(1200);
 
   askVerifyQuestion();
 }
@@ -333,52 +364,58 @@ async function startVerification(){
 function askVerifyQuestion(){
   const step = verifySteps[currentStep];
 
-  const inputRow = document.createElement("div");
-  inputRow.className = "line";
+  (async () => {
+    // ✅ Question shows as an actual terminal line
+    await printLine({ prompt: ">", text: step.question });
+    await sleep(250);
 
-  const promptSpan = document.createElement("span");
-  promptSpan.className = "prompt";
-  promptSpan.textContent = ">";
+    // Then show input prompt
+    const inputRow = document.createElement("div");
+    inputRow.className = "line";
 
-  const input = document.createElement("input");
-  input.placeholder = step.question;
+    const promptSpan = document.createElement("span");
+    promptSpan.className = "prompt";
+    promptSpan.textContent = ">";
 
-  inputRow.appendChild(promptSpan);
-  inputRow.appendChild(input);
-  term.appendChild(inputRow);
-  scrollBottom();
-  input.focus();
+    const input = document.createElement("input");
+    input.placeholder = "Type answer and press Enter...";
 
-  input.addEventListener("keydown", async (e)=>{
-    if(e.key !== "Enter") return;
+    inputRow.appendChild(promptSpan);
+    inputRow.appendChild(input);
+    term.appendChild(inputRow);
+    scrollBottom();
+    input.focus();
 
-    const userAnswer = input.value.trim().toLowerCase();
-    input.disabled = true;
+    input.addEventListener("keydown", async (e)=>{
+      if(e.key !== "Enter") return;
 
-    if(userAnswer === step.answer){
-      await printLine({prompt:"", text: step.response});
-      await sleep(1200);
+      const userAnswer = input.value.trim().toLowerCase();
+      input.disabled = true;
 
-      currentStep++;
-      if(currentStep < verifySteps.length){
-        askVerifyQuestion();
+      if(userAnswer === step.answer){
+        await printLine({prompt:"", text: step.response});
+        await sleep(1200);
+
+        currentStep++;
+        if(currentStep < verifySteps.length){
+          askVerifyQuestion();
+        } else {
+          await printLine({prompt:"", text:""});
+          await printLine({prompt:"", text:"Identity verified."});
+          await sleep(1500);
+          await printLine({prompt:"", text:"Memory back."});
+          await sleep(1800);
+          installFlow();
+        }
       } else {
-        await printLine({prompt:"", text:""});
-        await printLine({prompt:"", text:"Identity verified."});
-        await sleep(1500);
-        await printLine({prompt:"", text:"Memory back."});
-        await sleep(1800);
-
-        installFlow(); // continue into main sequence
+        await printLine({prompt:"", text:"You should know this by now...", cls:"muted"});
+        await sleep(3000);
+        input.disabled = false;
+        input.value = "";
+        input.focus();
       }
-    } else {
-      await printLine({prompt:"", text:"You should know this by now...", cls:"muted"});
-      await sleep(3000); // 🔒 lock for 3 seconds
-      input.disabled = false;
-      input.value = "";
-      input.focus();
-    }
-  });
+    });
+  })();
 }
 
 /** ========= MAIN LOVEOS SEQUENCE ========= **/
@@ -390,9 +427,8 @@ async function installFlow(){
 
   addHR();
 
-  // Relationship summary (slower)
   await printLine({prompt: ">", text: "relationship.status --summary"});
-  await sleep(300);
+  await sleep(500);
   await printLine({prompt:"", text:`Relationship Runtime: ${CONFIG.anniversaryDays} days`});
   await printLine({prompt:"", text:`Stability Index: ${CONFIG.stability}`});
   await printLine({prompt:"", text:"Compatibility: unfairly good"});
@@ -400,11 +436,9 @@ async function installFlow(){
 
   addHR();
 
-  // Install command
   await printLine({prompt: ">", text: "updates.install --version 2.0"});
-  await sleep(250);
+  await sleep(450);
 
-  // Progress sequence (your updated text-only)
   const steps = [
     "Downloading: buggu.pack",
     "Downloading: patience.dll",
@@ -417,14 +451,13 @@ async function installFlow(){
   for(const s of steps){
     await printLine({prompt:"", text: s, cls:"muted"});
   }
-  await sleep(200);
+  await sleep(350);
   await printLine({prompt:"", text:"✔ Installation complete.", cls:"accent"});
 
   addHR();
 
-  // Patch notes (your updated lists)
   await printLine({prompt: ">", text: "release.notes --LoveOS v2.0"});
-  await sleep(250);
+  await sleep(450);
 
   await printLine({prompt:"", text:"New Features Added"});
   await printLine({prompt:"", text:"• inside jokes +200%"});
@@ -433,55 +466,51 @@ async function installFlow(){
   await printLine({prompt:"", text:"• improved “I miss you” responsiveness"});
   await printLine({prompt:"", text:"• Anniversary Mode activated"});
 
-  await sleep(250);
+  await sleep(450);
   await printLine({prompt:"", text:"Performance Improvements"});
   await printLine({prompt:"", text:"• reduced response time"});
   await printLine({prompt:"", text:"• faster apology protocol"});
   await printLine({prompt:"", text:"• better listening integration"});
   await printLine({prompt:"", text:"• enhanced communication algorithm"});
 
-  await sleep(250);
+  await sleep(450);
   await printLine({prompt:"", text:"Bug Fixes"});
-  // Add any extra “bug fix” lines locally if you want
   await printLine({prompt:"", text:"• random silence crash resolved"});
   await printLine({prompt:"", text:"• mood swing buffering improved"});
 
   addHR();
 
-  // Device profile
   await printLine({prompt: ">", text: "device.profile --traits"});
-  await sleep(150);
+  await sleep(350);
   for(const t of CONFIG.deviceTraits){
     await printLine({prompt:"", text:`• ${t}`});
   }
-  await sleep(250);
+  await sleep(450);
   await printLine({prompt:"", text:`“${CONFIG.herName} remains my favorite system.”`});
 
   addHR();
 
-  // Memory cache
   await printLine({prompt: ">", text: "memory.cache --restore full_archive"});
   await printLine({prompt:"", text:"Restoring relationship logs...", cls:"muted"});
-  await sleep(350);
+  await sleep(600);
 
   for(const m of CONFIG.memoryLines){
     await printLine({prompt:"", text:`> ${m}`});
   }
 
-  await sleep(300);
+  await sleep(650);
   await printLine({prompt:"", text:"Coming to the most important month of the year: February.", cls:"accent"});
 
   addHR();
 
-  // Final prompt
   await printLine({prompt:"", text:"LoveOS v2.0 is now running smoothly."});
-  await sleep(150);
+  await sleep(300);
   await printLine({prompt:"", text:"Status: Still choosing you. Daily."});
-  await sleep(150);
+  await sleep(300);
   await printLine({prompt:"", text:"No trial period. No auto-expiration. No hidden clauses."});
-  await sleep(450);
+  await sleep(700);
   await printLine({prompt:"", text:"Would you like to continue this journey into Version 2.0?"});
-  await sleep(200);
+  await sleep(400);
 
   addChoices(CONFIG.finalButtons.map(b => ({
     label: b.label,

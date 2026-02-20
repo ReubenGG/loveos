@@ -1,549 +1,247 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LoveOS v2.0 — System Upgrade</title>
-  <style>
-    :root{
-      --bg:#070A0F;
-      --panel:#0B1220;
-      --text:#D7E1FF;
-      --muted:#8EA2D6;
-      --accent:#7CFFB2;
-      --border:rgba(215,225,255,.12);
-      --shadow: 0 20px 50px rgba(0,0,0,.55);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      background: radial-gradient(1200px 800px at 20% 10%, rgba(124,255,178,.12), transparent 55%),
-                  radial-gradient(900px 700px at 90% 30%, rgba(255,124,170,.10), transparent 55%),
-                  radial-gradient(800px 600px at 60% 90%, rgba(255,210,124,.10), transparent 50%),
-                  var(--bg);
-      color:var(--text);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:24px;
-    }
-    .frame{
-      width:min(920px, 100%);
-      border:1px solid var(--border);
-      border-radius:18px;
-      background: linear-gradient(180deg, rgba(11,18,32,.92), rgba(11,18,32,.82));
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      padding:14px 16px;
-      border-bottom:1px solid var(--border);
-      background: rgba(255,255,255,.02);
-    }
-    .dots{display:flex; gap:8px; align-items:center}
-    .dot{width:10px;height:10px;border-radius:999px; opacity:.9}
-    .dot.red{background:#FF5F57}
-    .dot.yellow{background:#FEBC2E}
-    .dot.green{background:#28C840}
-    .title{
-      font-size:13px;
-      color:var(--muted);
-      letter-spacing:.3px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      flex: 1;
-      text-align:center;
-    }
-    .status{
-      font-size:12px;
-      color:var(--muted);
-      display:flex; gap:10px; align-items:center;
-    }
-    .pill{
-      padding:6px 10px;
-      border:1px solid var(--border);
-      border-radius:999px;
-      background: rgba(255,255,255,.03);
-    }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LoveOS v2.0</title>
 
-    .terminal{
-      padding:18px 18px 14px;
-      height:min(72vh, 600px);
-      overflow:auto;
-      scroll-behavior:smooth;
-    }
-    .line{display:flex; gap:10px; align-items:flex-start; padding:4px 0}
-    .prompt{color:var(--accent); white-space:nowrap; min-width:16px}
-    .text{color:var(--text); line-height:1.55; white-space:pre-wrap}
+<style>
+:root{
+  --bg:#070A0F;
+  --text:#D7E1FF;
+  --muted:#8EA2D6;
+  --accent:#7CFFB2;
+}
 
-    .muted{color:var(--muted)}
-    .accent{color:var(--accent)}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+}
 
-    .hr{
-      margin:14px 0;
-      height:1px;
-      background: linear-gradient(90deg, transparent, rgba(215,225,255,.18), transparent);
-    }
+.terminal{
+  width:90%;
+  max-width:900px;
+  height:80vh;
+  overflow:auto;
+  padding:20px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;
+  background:rgba(10,15,25,.95);
+}
 
-    .choices{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      padding:10px 0 2px;
-    }
-    button{
-      cursor:pointer;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background: rgba(255,255,255,.04);
-      color:var(--text);
-      padding:10px 12px;
-      font: inherit;
-      transition: transform .08s ease, background .2s ease, border-color .2s ease;
-    }
-    button:hover{background: rgba(255,255,255,.07); border-color: rgba(215,225,255,.22)}
-    button:active{transform: translateY(1px)}
-    button.primary{
-      background: rgba(124,255,178,.12);
-      border-color: rgba(124,255,178,.35);
-    }
-    button.primary:hover{background: rgba(124,255,178,.18)}
-    button.romance{
-      background: rgba(255,124,170,.12);
-      border-color: rgba(255,124,170,.38);
-    }
-    button.romance:hover{background: rgba(255,124,170,.18)}
+.line{display:flex; gap:10px; padding:4px 0}
+.prompt{color:var(--accent)}
+.text{white-space:pre-wrap}
+.muted{color:var(--muted)}
+.red{color:#ff4d6d;}
 
-    .footer{
-      border-top:1px solid var(--border);
-      padding:12px 16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      color:var(--muted);
-      font-size:12px;
-      background: rgba(255,255,255,.015);
-    }
+input{
+  background:transparent;
+  border:none;
+  outline:none;
+  color:var(--text);
+  font:inherit;
+  flex:1;
+}
 
-    /* Input line */
-    input{
-      background:transparent;
-      border:none;
-      outline:none;
-      color:var(--text);
-      font:inherit;
-      flex:1;
-      padding:0;
-      margin:0;
-    }
-    input::placeholder{
-      color: var(--muted);
-      opacity: 1;
-    }
+.caret{
+  display:inline-block;
+  width:9px;
+  height:16px;
+  background:var(--accent);
+  margin-left:6px;
+  animation:blink 1s steps(2,start) infinite;
+}
 
-    /* Visible typing cursor */
-    .caret{
-      display:inline-block;
-      width:9px;
-      height:16px;
-      background: var(--accent);
-      margin-left:6px;
-      border-radius:2px;
-      animation: blink 1s steps(2,start) infinite;
-      vertical-align:-2px;
-      opacity:.9;
-    }
-    @keyframes blink { to { visibility: hidden; } }
+@keyframes blink { to { visibility:hidden; } }
 
-    /* Awaiting cursor */
-    .blink{
-      display:inline-block;
-      width:9px;
-      height:16px;
-      background: var(--accent);
-      margin-left:6px;
-      border-radius:2px;
-      animation: blink 1s steps(2,start) infinite;
-      vertical-align:-2px;
-      opacity:.9;
-    }
-
-    ::selection { background: rgba(124,255,178,.22); }
-  </style>
+button{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.2);
+  color:var(--text);
+  padding:10px 14px;
+  border-radius:10px;
+  margin:8px 6px 0 0;
+  cursor:pointer;
+}
+</style>
 </head>
+
 <body>
-  <div class="frame">
-    <div class="topbar">
-      <div class="dots" aria-hidden="true">
-        <span class="dot red"></span>
-        <span class="dot yellow"></span>
-        <span class="dot green"></span>
-      </div>
-      <div class="title" id="barTitle">LoveOS Terminal — v2.0 Upgrade</div>
-      <div class="status">
-        <span class="pill" id="runtimePill">Runtime: 365d</span>
-        <span class="pill" id="stabilityPill">Stability: Strong</span>
-      </div>
-    </div>
-
-    <div class="terminal" id="terminal" role="log" aria-live="polite"></div>
-
-    <div class="footer">
-      <div>Tip: click anywhere to speed up typing.</div>
-      <div><span class="accent">connected</span> • LoveOS</div>
-    </div>
-  </div>
+<div class="terminal" id="terminal"></div>
 
 <script>
-/** ========= CONFIG ========= **/
-const CONFIG = {
-  herName: "HerName",
-  yourName: "Reuben",
-  anniversaryDays: 365,
-  stability: "Strong",
-
-  // Safe default; you can expand locally.
-  deviceTraits: [
-    "Soft-hearted, calm-core",
-    "Very loving",
-    "Smart enough to see through my nonsense",
-    "Best music taste"
-  ],
-
-  memoryLines: [
-    "First Toto's after dating",
-    "Our one month date when i got the best cake ever (spongebob one as well!)",
-    "Our first finish together OOF",
-    "Thicker than a snickers shortsss",
-    "when we celebrated the RCB IPL win too much",
-    "SO MANY AUTO HANDSIES",
-    "my graduation night OUR FIRST ILOVEU",
-    "SEPTEMBER 22ND DATE RECREATION WITH THE ZAWGGGGGG",
-    "OCT-NOV ON DA LOW CAUSE OF PAPERS BUT GOOD DATE NIGHTS",
-    "December 14 sis bday room chori but amazing night"
-  ],
-
-  finalButtons: [
-    { key: "Always", label: "Always" },
-    { key: "Obviously", label: "Obviously" }
-  ]
-};
-
-/** ========= TOPBAR ========= **/
-document.getElementById("barTitle").textContent = `LoveOS Terminal — v2.0 Upgrade`;
-document.getElementById("runtimePill").textContent = `Runtime: ${CONFIG.anniversaryDays}d`;
-document.getElementById("stabilityPill").textContent = `Stability: ${CONFIG.stability}`;
-
-/** ========= TERMINAL ENGINE ========= **/
 const term = document.getElementById("terminal");
-
-// Slower cinematic typing
-let SPEED = 55;         // ms per character (slow-burn)
-let FAST_MULT = 0.6;    // click speeds up but not too much
 let speedBoost = 1;
-
-document.addEventListener("click", () => { speedBoost = FAST_MULT; });
+document.addEventListener("click", ()=> speedBoost = 0.8);
 
 function scrollBottom(){ term.scrollTop = term.scrollHeight; }
-function addHR(){
-  const hr = document.createElement("div");
-  hr.className = "hr";
-  term.appendChild(hr);
-  scrollBottom();
-}
-function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
-async function typeInto(textSpan, fullText){
-  // Create a dedicated text node + caret so we can type "before" the caret.
-  const textNode = document.createTextNode("");
+async function typeInto(span, text){
+  const node = document.createTextNode("");
   const caret = document.createElement("span");
   caret.className = "caret";
 
-  // Clear and mount
-  textSpan.textContent = "";
-  textSpan.appendChild(textNode);
-  textSpan.appendChild(caret);
+  span.textContent="";
+  span.appendChild(node);
+  span.appendChild(caret);
 
-  for(let i=0; i<fullText.length; i++){
-    textNode.data += fullText[i];
+  const MIN_DURATION = 3000;
+  const charDelay = 35;
+
+  const start = Date.now();
+
+  for(let i=0;i<text.length;i++){
+    node.data += text[i];
     scrollBottom();
-    await sleep(Math.max(6, SPEED * speedBoost));
+    await sleep(charDelay * speedBoost);
   }
 
-  // Remove caret after typing finishes
+  const elapsed = Date.now() - start;
+  if(elapsed < MIN_DURATION){
+    await sleep(MIN_DURATION - elapsed);
+  }
+
   caret.remove();
 }
 
 async function printLine({prompt=">", text="", cls=""}){
   const row = document.createElement("div");
-  row.className = "line";
+  row.className="line";
 
   const p = document.createElement("span");
-  p.className = "prompt";
-  p.textContent = prompt ? prompt : " ";
+  p.className="prompt";
+  p.textContent=prompt;
 
   const t = document.createElement("span");
-  t.className = "text " + (cls || "");
+  t.className="text "+cls;
 
   row.appendChild(p);
   row.appendChild(t);
   term.appendChild(row);
   scrollBottom();
 
-  await typeInto(t, text);
+  await typeInto(t,text);
+
+  // 3-second breathing space after EVERY line
+  await sleep(3000);
 }
 
-function addChoices(buttons){
-  const wrap = document.createElement("div");
-  wrap.className = "choices";
-  buttons.forEach(b=>{
-    const btn = document.createElement("button");
-    btn.textContent = b.label;
-    btn.className = b.className || "romance";
-    btn.addEventListener("click", b.onClick);
-    wrap.appendChild(btn);
-  });
-  term.appendChild(wrap);
-  scrollBottom();
-}
+let step = 0;
 
-function addBlink(){
-  const row = document.createElement("div");
-  row.className = "line";
-  row.innerHTML = `<span class="prompt muted"> </span><span class="text muted">Awaiting your input</span><span class="blink"></span>`;
-  term.appendChild(row);
-  scrollBottom();
-}
-
-/** ========= VERIFICATION GATE ========= **/
-let currentStep = 0;
-
-const verifySteps = [
-  {
-    question: "Enter password:",
-    answer: "22/09/24",
-    response: "Access granted."
-  },
-  {
-    question: "What is the most important month of the year?",
-    answer: "february",
-    response: "Correct - the time i had to cancel TOTOS, to call u home"
-  },
-  {
-    question: 'When did we first say "I love you"?',
-    answer: "graduation night",
-    response: "VERY NICEEE - the night we photobombed everyone while making out crazy style"
-  },
-  {
-    question: "Who do you listen to when you're excited to go on a date?",
-    answer: "nicki minaj",
-    response: "This one was an old call back, im impressed very good"
-  }
+const questions = [
+  { q:"Enter password:", a:"22/09/24", r:"Access granted." },
+  { q:"What is the most important month of the year?", a:"february", r:"Correct - the time i had to cancel TOTOS, to call u home" },
+  { q:'When did we first say "I love you"?', a:"graduation night", r:"VERY NICEEE - the night we photobombed everyone while making out crazy style" },
+  { q:"Who do you listen to when you're excited to go on a date?", a:"nicki minaj", r:"This one was an old call back, im impressed very good" }
 ];
 
-async function startVerification(){
-  await printLine({prompt:"", text:"LoveOS v2.0"});
-  await sleep(900);
-  await printLine({prompt:"", text:"Access Restricted."});
-  await sleep(1000);
-  await printLine({prompt:"", text:"This system contains one year of stored memories."});
-  await sleep(1000);
-  await printLine({prompt:"", text:"Unauthorized users will not be granted access.", cls:"muted"});
-  await sleep(1200);
+async function ask(){
+  const current = questions[step];
 
-  askVerifyQuestion();
-}
+  await printLine({prompt:">", text:current.q});
 
-function askVerifyQuestion(){
-  const step = verifySteps[currentStep];
+  const row = document.createElement("div");
+  row.className="line";
 
-  (async () => {
-    // ✅ Question shows as an actual terminal line
-    await printLine({ prompt: ">", text: step.question });
-    await sleep(250);
+  const p = document.createElement("span");
+  p.className="prompt";
+  p.textContent=">";
 
-    // Then show input prompt
-    const inputRow = document.createElement("div");
-    inputRow.className = "line";
+  const input=document.createElement("input");
+  input.placeholder="Type answer and press Enter...";
 
-    const promptSpan = document.createElement("span");
-    promptSpan.className = "prompt";
-    promptSpan.textContent = ">";
+  row.appendChild(p);
+  row.appendChild(input);
+  term.appendChild(row);
+  scrollBottom();
+  input.focus();
 
-    const input = document.createElement("input");
-    input.placeholder = "Type answer and press Enter...";
+  input.addEventListener("keydown", async e=>{
+    if(e.key!=="Enter") return;
 
-    inputRow.appendChild(promptSpan);
-    inputRow.appendChild(input);
-    term.appendChild(inputRow);
-    scrollBottom();
-    input.focus();
+    input.disabled=true;
+    const val=input.value.trim().toLowerCase();
 
-    input.addEventListener("keydown", async (e)=>{
-      if(e.key !== "Enter") return;
-
-      const userAnswer = input.value.trim().toLowerCase();
-      input.disabled = true;
-
-      if(userAnswer === step.answer){
-        await printLine({prompt:"", text: step.response});
-        await sleep(1200);
-
-        currentStep++;
-        if(currentStep < verifySteps.length){
-          askVerifyQuestion();
-        } else {
-          await printLine({prompt:"", text:""});
-          await printLine({prompt:"", text:"Identity verified."});
-          await sleep(1500);
-          await printLine({prompt:"", text:"Memory back."});
-          await sleep(1800);
-          installFlow();
-        }
-      } else {
-        await printLine({prompt:"", text:"You should know this by now...", cls:"muted"});
-        await sleep(3000);
-        input.disabled = false;
-        input.value = "";
-        input.focus();
+    if(val===current.a){
+      await printLine({prompt:"", text:current.r});
+      step++;
+      if(step<questions.length){ ask(); }
+      else{
+        await printLine({prompt:"", text:"Identity verified."});
+        await printLine({prompt:"", text:"Memory back."});
+        install();
       }
-    });
-  })();
+    }else{
+      await printLine({prompt:"", text:"You should know this by now...", cls:"muted"});
+      await sleep(3000);
+      input.disabled=false;
+      input.value="";
+      input.focus();
+    }
+  });
 }
 
-/** ========= MAIN LOVEOS SEQUENCE ========= **/
-let installed = false;
+async function install(){
 
-async function installFlow(){
-  if(installed) return;
-  installed = true;
-
-  addHR();
-
-  await printLine({prompt: ">", text: "relationship.status --summary"});
-  await sleep(500);
-  await printLine({prompt:"", text:`Relationship Runtime: ${CONFIG.anniversaryDays} days`});
-  await printLine({prompt:"", text:`Stability Index: ${CONFIG.stability}`});
-  await printLine({prompt:"", text:"Compatibility: unfairly good"});
-  await printLine({prompt:"", text:"Mood: in love (still)"});
-
-  addHR();
-
-  await printLine({prompt: ">", text: "updates.install --version 2.0"});
-  await sleep(450);
-
-  const steps = [
-    "Downloading: buggu.pack",
-    "Downloading: patience.dll",
-    "Downloading: laughter.codec",
-    "Applying patch: listen_mode++",
-    "Applying patch: reassurance_autosave",
-    "Optimizing: text_response_time",
-    "Finalizing: anniversary_mode"
-  ];
-  for(const s of steps){
-    await printLine({prompt:"", text: s, cls:"muted"});
-  }
-  await sleep(350);
-  await printLine({prompt:"", text:"✔ Installation complete.", cls:"accent"});
-
-  addHR();
-
-  await printLine({prompt: ">", text: "release.notes --LoveOS v2.0"});
-  await sleep(450);
-
-  await printLine({prompt:"", text:"New Features Added"});
-  await printLine({prompt:"", text:"• inside jokes +200%"});
-  await printLine({prompt:"", text:"• so much new music"});
-  await printLine({prompt:"", text:"• auto-hug and kissy deployment"});
-  await printLine({prompt:"", text:"• improved “I miss you” responsiveness"});
-  await printLine({prompt:"", text:"• Anniversary Mode activated"});
-
-  await sleep(450);
-  await printLine({prompt:"", text:"Performance Improvements"});
-  await printLine({prompt:"", text:"• reduced response time"});
-  await printLine({prompt:"", text:"• faster apology protocol"});
-  await printLine({prompt:"", text:"• better listening integration"});
-  await printLine({prompt:"", text:"• enhanced communication algorithm"});
-
-  await sleep(450);
-  await printLine({prompt:"", text:"Bug Fixes"});
-  await printLine({prompt:"", text:"• random silence crash resolved"});
-  await printLine({prompt:"", text:"• mood swing buffering improved"});
-
-  addHR();
-
-  await printLine({prompt: ">", text: "device.profile --traits"});
-  await sleep(350);
-  for(const t of CONFIG.deviceTraits){
-    await printLine({prompt:"", text:`• ${t}`});
-  }
-  await sleep(450);
-  await printLine({prompt:"", text:`“${CONFIG.herName} remains my favorite system.”`});
-
-  addHR();
-
-  await printLine({prompt: ">", text: "memory.cache --restore full_archive"});
-  await printLine({prompt:"", text:"Restoring relationship logs...", cls:"muted"});
-  await sleep(600);
-
-  for(const m of CONFIG.memoryLines){
-    await printLine({prompt:"", text:`> ${m}`});
-  }
-
-  await sleep(650);
-  await printLine({prompt:"", text:"Coming to the most important month of the year: February.", cls:"accent"});
-
-  addHR();
+  await printLine({prompt:">", text:"updates.install --version 2.0"});
+  await printLine({prompt:"", text:"Downloading: buggu.pack"});
+  await printLine({prompt:"", text:"Downloading: patience.dll"});
+  await printLine({prompt:"", text:"Downloading: laughter.codec"});
+  await printLine({prompt:"", text:"Applying patch: listen_mode++"});
+  await printLine({prompt:"", text:"Applying patch: reassurance_autosave"});
+  await printLine({prompt:"", text:"Optimizing: text_response_time"});
+  await printLine({prompt:"", text:"Finalizing: anniversary_mode"});
+  await printLine({prompt:"", text:"✔ Installation complete."});
 
   await printLine({prompt:"", text:"LoveOS v2.0 is now running smoothly."});
-  await sleep(300);
   await printLine({prompt:"", text:"Status: Still choosing you. Daily."});
-  await sleep(300);
   await printLine({prompt:"", text:"No trial period. No auto-expiration. No hidden clauses."});
-  await sleep(700);
   await printLine({prompt:"", text:"Would you like to continue this journey into Version 2.0?"});
-  await sleep(400);
 
-  addChoices(CONFIG.finalButtons.map(b => ({
-    label: b.label,
-    className: "romance",
-    onClick: () => finalScreen()
-  })));
-  addBlink();
+  const yes = document.createElement("button");
+  yes.textContent="Always";
+  yes.onclick=final;
+
+  const obv = document.createElement("button");
+  obv.textContent="Obviously";
+  obv.onclick=final;
+
+  term.appendChild(yes);
+  term.appendChild(obv);
+  scrollBottom();
 }
 
-let finalRan = false;
-async function finalScreen(){
-  if(finalRan) return;
-  finalRan = true;
-
-  addHR();
+async function final(){
 
   await printLine({prompt:"", text:"Confirmation received."});
-  await sleep(900);
+  await printLine({prompt:"", text:'Commit message: "One year down, ship\'s sailing smooooth"'});
+  await printLine({prompt:"", text:"You make loving so much fun..."});
 
-  await printLine({prompt:"", text:`Commit message: "One year down. I’m still all in."`});
-  await sleep(1600);
+  // Extra dramatic pause before red line
+  await sleep(4000);
 
-  await printLine({prompt:"", text:`"Maybe one day I'll fly next to you"`});
-  await sleep(2000);
-
-  await printLine({prompt:"", text:"— Reuben"});
-  await sleep(800);
+  await printLine({prompt:"", text:"now take your clothes off, oil up and let's go to town.", cls:"red"});
 
   await printLine({prompt:"", text:"You can close the terminal now, and give feedback to your closest mogger"});
 }
 
-/** ========= START ========= **/
-startVerification();
+async function start(){
+  await printLine({prompt:"", text:"LoveOS v2.0"});
+  await printLine({prompt:"", text:"Access Restricted."});
+  await printLine({prompt:"", text:"This system contains one year of stored memories."});
+  await printLine({prompt:"", text:"Unauthorized users will not be granted access.", cls:"muted"});
+  ask();
+}
+
+start();
 </script>
 </body>
 </html>
